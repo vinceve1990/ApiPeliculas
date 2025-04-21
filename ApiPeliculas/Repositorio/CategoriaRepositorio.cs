@@ -15,14 +15,23 @@ namespace ApiPeliculas.Repositorio
         public bool ActualizaCategoria(Categoria categoria)
         {
             categoria.FechaCreacion = DateTime.Now;
-            _db.Categoria.Update(categoria);
+
+            var catExiste = _db.Categorias.Find(categoria.Id);
+
+            if (catExiste != null)
+            {
+                _db.Entry(catExiste).CurrentValues.SetValues(categoria);
+            }
+            else { 
+                _db.Categorias.Update(categoria);
+            }
 
             return Guardar();
         }
 
         public bool BorrarCategoria(Categoria categoria)
         {
-            _db.Categoria.Remove(categoria);
+            _db.Categorias.Remove(categoria);
 
             return Guardar();
         }
@@ -30,31 +39,31 @@ namespace ApiPeliculas.Repositorio
         public bool CrearCategoria(Categoria categoria)
         {
             categoria.FechaCreacion = DateTime.Now;
-            _db.Categoria.Add(categoria);
+            _db.Categorias.Add(categoria);
 
             return Guardar();
         }
 
         public bool ExisteCategoria(int id)
         {
-            return _db.Categoria.Any(c=> c.Id == id);
+            return _db.Categorias.Any(c=> c.Id == id);
         }
 
         public bool ExisteCategoria(string nombre)
         {
-            bool val = _db.Categoria.Any(c => c.Nombre.ToLower().Trim()==nombre.ToLower().Trim());
+            bool val = _db.Categorias.Any(c => c.Nombre.ToLower().Trim()==nombre.ToLower().Trim());
 
             return val;
         }
 
         public Categoria GetCategoria(int CategoriaId)
         {
-            return _db.Categoria.FirstOrDefault(c => c.Id == CategoriaId);
+            return _db.Categorias.FirstOrDefault(c => c.Id == CategoriaId);
         }
 
         public ICollection<Categoria> GetCategorias()
         {
-            return _db.Categoria.OrderBy(c => c.Nombre).ToList();
+            return _db.Categorias.OrderBy(c => c.Nombre).ToList();
         }
 
         public bool Guardar()
