@@ -7,11 +7,14 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<ApplicationDbContext>(opciones => 
-    opciones.UseSqlServer(builder.Configuration.GetConnectionString("Conexion")));
+builder.Services.AddDbContext<ApplicationDbContext>(opciones => {
+    var connectionString = builder.Configuration.GetConnectionString("Conexion");
+    opciones.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+});
 
 //Agregar los repositorios
 builder.Services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
+builder.Services.AddScoped<IPeliculaRepositorio, PeliculaRepositorio>();
 
 
 //Agregar el AutoMapper
