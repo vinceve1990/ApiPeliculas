@@ -2,6 +2,8 @@
 using ApiPeliculas.Models;
 using ApiPeliculas.Models.Dtos;
 using ApiPeliculas.Repositorio.IRepositorio;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 using XSystem.Security.Cryptography;
 
 namespace ApiPeliculas.Repositorio {
@@ -30,8 +32,25 @@ namespace ApiPeliculas.Repositorio {
             return false;
         }
 
-        public Task<UsuarioLoginRespuestaDto> Login(UsuarioLoginDto usuarioLoginDto) {
-            throw new NotImplementedException();
+        public async Task<UsuarioLoginRespuestaDto> Login(UsuarioLoginDto usuarioLoginDto) {
+            var passEncrip = obtenermd5(usuarioLoginDto.Password);
+            var usuario = _db.Usuarios.FirstOrDefault(
+                u => u.NombreUsuario.ToLower() == usuarioLoginDto.NombreUsuario.ToLower()
+                && u.Password == passEncrip
+                );
+
+            if(usuario == null)
+            {
+                return new UsuarioLoginRespuestaDto()
+                {
+                    Token = "",
+                    usuario = null
+                };
+            }
+
+            var manejadoToken = new JwtSecurityTokenHandler();
+            //var key = Encoding.ASCII.GetBytes(claveSecreta);
+            return new UsuarioLoginRespuestaDto();
         }
 
         public async Task<Usuario> Registro(UsuarioRegistroDto usuarioRegistroDto) {
