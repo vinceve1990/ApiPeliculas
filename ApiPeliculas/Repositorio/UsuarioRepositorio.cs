@@ -2,16 +2,21 @@
 using ApiPeliculas.Models;
 using ApiPeliculas.Models.Dtos;
 using ApiPeliculas.Repositorio.IRepositorio;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using XSystem.Security.Cryptography;
 
 namespace ApiPeliculas.Repositorio {
     public class UsuarioRepositorio : IUsuarioRepositorio {
         private readonly ApplicationDbContext _db;
+        private string claveSecreta;
 
-        public UsuarioRepositorio(ApplicationDbContext db) {
+        public UsuarioRepositorio(ApplicationDbContext db, IConfiguration configuration)
+        {
             _db = db;
+            claveSecreta = configuration.GetValue<string>("ApiSettings:Secreta");
         }
 
         public Usuario GetUsuario(int UsuarioId) {
@@ -49,8 +54,28 @@ namespace ApiPeliculas.Repositorio {
             }
 
             var manejadoToken = new JwtSecurityTokenHandler();
-            //var key = Encoding.ASCII.GetBytes(claveSecreta);
-            return new UsuarioLoginRespuestaDto();
+            var key = Encoding.ASCII.GetBytes(claveSecreta);
+
+            var tokendescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.Name, usuario.NombreUsuario.ToString()),
+                    new Claim(ClaimTypes.Role, usuario.Rol)
+                }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = manejadoToken.CreateToken(tokendescriptor);
+
+            UsuarioLoginRespuestaDto usuarioLoginRespuestaDto = new UsuarioLoginRespuestaDto()
+            {
+                Token = manejadoToken.WriteToken(token),
+                usuario = usuario
+            };
+
+            return usuarioLoginRespuestaDto;
         }
 
         public async Task<Usuario> Registro(UsuarioRegistroDto usuarioRegistroDto) {
