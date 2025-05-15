@@ -31,10 +31,10 @@ namespace ApiPeliculas.Repositorio {
             var usuarioBD = _db.Usuarios.FirstOrDefault(c => c.NombreUsuario == usuario);
             
             if (usuarioBD != null) { 
-                return true;
+                return false;
             }
             
-            return false;
+            return true;
         }
 
         public async Task<UsuarioLoginRespuestaDto> Login(UsuarioLoginDto usuarioLoginDto) {
